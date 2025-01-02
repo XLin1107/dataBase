@@ -18,7 +18,7 @@ QMap<QString, QString> optionQuestions = {
     {"问题 2-2", "查询在指定时间段区域居民收入最高和最低区域，以及它们与全国平均值的差异。（输入时间）"},
     {"问题 2-3", "分析在指定时间段某个区域居民的各项收入。（输入地区、时间）"},
     {"问题 2-4", "分析比较指定区域各项收入占比的变化。（输入地区、时间）"},
-    {"问题 2-5", "查询分析在指定时间段区域居民收入最高的3个区域和最低的3个区域的以及它们的人口特征，包括人口数量、人口密度，等等。人口密度用人口数量/区域面积得到，可不用另行采集存人口密度数据。"},
+    {"问题 2-5", "查询分析在指定时间段区域居民收入最高的3个区域和最低的3个区域的以及它们的人口特征，包括人口数量、人口密度，等等。人口密度用人口数量/区域面积得到，可不用另行采集存人口密度数据。（输入起始时间）"},
     {"问题 2-6-1", "如果将居民收入划分为高、中、低三个等级，给每个区域收入赋予等级，将结果存储在数据库中，并且统计在指定时间段各种等级的区域数量。查询哪些区域居民收入一直位于高等级，哪些一直位于低等级。注意不同时间段划分高中低等级的标准不同。（输入时间）"},
     {"问题 2-6-2", "如果将居民收入划分为高、中、低三个等级，给每个区域收入赋予等级，将结果存储在数据库中，并且统计在指定时间段各种等级的区域数量。查询哪些区域居民收入一直位于高等级，哪些一直位于低等级。注意不同时间段划分高中低等级的标准不同。（输入时间）"},
     {"问题 2-7", "比较东部、西部、中部、东北部地区的居民收入的环比增长率。（输入时间）"},
@@ -270,6 +270,14 @@ void MainWindow::executeProcedure() {
         query.bindValue(":province_name", province);
         query.bindValue(":start_year", startYear);
         query.bindValue(":end_year", endYear);
+    }else if (selectedOption == "问题 2-5") {
+        if (startYear <= 0 ) {
+            qDebug() << "Invalid input values!";
+            ui->textEdit_3->setPlainText("请输入有效的时间。");
+            return;
+        }
+        query.prepare("EXEC GetTopAndBottomRegions :start_year");
+        query.bindValue(":start_year", startYear);
     }else if (selectedOption == "问题 2-6-1") {
         if (startYear <= 0 || endYear <= 0 || startYear > endYear) {
             qDebug() << "Invalid input values!";
@@ -307,7 +315,10 @@ void MainWindow::executeProcedure() {
         query.bindValue(":province_name", province);
         query.bindValue(":start_year", startYear);
         query.bindValue(":end_year", endYear);
-    }//还少2-5 和 2-8-1
+    }else if (selectedOption == "问题 2-8-2") {
+        query.prepare("EXEC GetMatchingRegions");
+    }
+    //还少2-5
     else {
         qDebug() << "Unsupported option:" << selectedOption;
         ui->textEdit_3->setPlainText("不支持的选项，请选择其他选项。");
