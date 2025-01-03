@@ -24,6 +24,10 @@ QMap<QString, QString> optionQuestions = {
     {"问题 2-7", "比较东部、西部、中部、东北部地区的居民收入的环比增长率。（输入时间）"},
     {"问题 2-8-1", "分析比较在指定时间段指定区域的居民收入与社会消费品零售额的变化趋势，在最近三年，哪些区域的居民收入与社会消费品零售额的变化趋势相同？（输入地区、时间）"},
     {"问题 2-8-2", "分析比较在指定时间段指定区域的居民收入与社会消费品零售额的变化趋势，在最近三年，哪些区域的居民收入与社会消费品零售额的变化趋势相同？"},
+
+    {"问题 3-1", "查询在指定时间段指定区域的GDP。（输入地区、时间）"},
+    {"问题 3-2", "查询指定时间段GDP总额最高和最低区域。（输入时间）"},
+    {"问题 3-3", "分析比较指定时间段东部、西部、中部、东北部地区的GDP，并进行排序。（输入时间）"},
 };
 
 
@@ -34,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->comboBox->addItem("1");
     ui->comboBox->addItem("2");
+    ui->comboBox->addItem("3");
     ui->listWidget->addItem("问题 1-1");
     ui->listWidget->addItem("问题 1-2-1");
     ui->listWidget->addItem("问题 1-2-2");
@@ -115,6 +120,10 @@ void  MainWindow::updateListWidget(int index){
         ui->listWidget->addItem("问题 2-7");
         ui->listWidget->addItem("问题 2-8-1");
         ui->listWidget->addItem("问题 2-8-2");
+    }else if (index == 2) { // 当选择 "3" 时
+        ui->listWidget->addItem("问题 3-1");
+        ui->listWidget->addItem("问题 3-2");
+        ui->listWidget->addItem("问题 3-3");
     }
 }
 
@@ -317,6 +326,37 @@ void MainWindow::executeProcedure() {
         query.bindValue(":end_year", endYear);
     }else if (selectedOption == "问题 2-8-2") {
         query.prepare("EXEC GetMatchingRegions");
+    }
+    else if (selectedOption == "问题 3-1") {
+        if (province.isEmpty() || startYear <= 0 || endYear <= 0 || startYear > endYear) {
+            qDebug() << "Invalid input values!";
+            ui->textEdit_3->setPlainText("请输入有效的省份和时间范围。");
+            return;
+        }
+        query.prepare("EXEC GetGDPByRegionAndTime :province_name,  :start_year, :end_year");
+        query.bindValue(":province_name", province);
+        query.bindValue(":start_year", startYear);
+        query.bindValue(":end_year", endYear);
+    }
+    else if (selectedOption == "问题 3-2") {
+        if (startYear <= 0 || endYear <= 0 || startYear > endYear) {
+            qDebug() << "Invalid input values!";
+            ui->textEdit_3->setPlainText("请输入有效的时间范围。");
+            return;
+        }
+        query.prepare("EXEC GetMaxAndMinGDPByTime :start_year, :end_year");
+        query.bindValue(":start_year", startYear);
+        query.bindValue(":end_year", endYear);
+    }
+    else if (selectedOption == "问题 3-3") {
+        if (startYear <= 0 || endYear <= 0 || startYear > endYear) {
+            qDebug() << "Invalid input values!";
+            ui->textEdit_3->setPlainText("请输入有效的时间范围。");
+            return;
+        }
+        query.prepare("EXEC GetRegionalGDP :start_year, :end_year");
+        query.bindValue(":start_year", startYear);
+        query.bindValue(":end_year", endYear);
     }
     //还少2-5
     else {
